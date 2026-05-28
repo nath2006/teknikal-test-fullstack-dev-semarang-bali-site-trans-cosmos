@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\RealtimeController;
 use App\Http\Controllers\Api\TaskController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -17,8 +18,15 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::middleware('auth:api')->group(function () {
-    Route::apiResource('tasks', TaskController::class)->except(['show']);
+    Route::get('tasks', [TaskController::class, 'index']);
     Route::get('tasks/{task}', [TaskController::class, 'show']);
+
+    Route::middleware('role:admin,manager')->group(function () {
+        Route::post('tasks', [TaskController::class, 'store']);
+        Route::put('tasks/{task}', [TaskController::class, 'update']);
+        Route::patch('tasks/{task}', [TaskController::class, 'update']);
+        Route::delete('tasks/{task}', [TaskController::class, 'destroy']);
+    });
 
     Route::post('tasks/{task}/attachments', [AttachmentController::class, 'store']);
     Route::post('tasks/{task}/comments', [CommentController::class, 'store']);
@@ -27,4 +35,8 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('attachments/{attachment}', [AttachmentController::class, 'destroy']);
 
     Route::get('realtime/tasks', RealtimeController::class);
+});
+
+Route::middleware(['auth:api', 'role:admin'])->group(function () {
+    Route::apiResource('users', UserController::class);
 });

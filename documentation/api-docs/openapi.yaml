@@ -96,3 +96,60 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  /users:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: List users (Admin only)
+      responses:
+        '200':
+          description: Users list
+
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Create user (Admin only)
+      responses:
+        '201':
+          description: User created
+
+  /users/{id}:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Get user detail
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: User detail
+
+    put:
+      security: [{ bearerAuth: [] }]
+      summary: Update user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: User updated
+
+    delete:
+      security: [{ bearerAuth: [] }]
+      summary: Delete user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: User deleted
