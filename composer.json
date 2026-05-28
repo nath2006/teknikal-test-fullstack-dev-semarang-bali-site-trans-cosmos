@@ -1,6 +1,0 @@
-{
-    "require": {
-        "tymon/jwt-auth": "^2.3",
-        "intervention/image-laravel": "^4.0"
-    }
-}
