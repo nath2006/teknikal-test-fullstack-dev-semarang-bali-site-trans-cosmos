@@ -142,5 +142,4 @@ npm run build
 <h3>Users</h3> <img src="./documentation/screenshots/users.png"> 
 
 ## Video Preview
-<video src="./documentation/preview-vid/preview-web-app.mp4" width="100%" controls></video>
-
+<a href="https://drive.google.com/file/d/1jhP2utsXaDET3gaWiYcekUUY2Hk5wyM-/view?usp=drive_link">Link Preview Video</a>
