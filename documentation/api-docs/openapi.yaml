@@ -19,137 +19,168 @@ paths:
                 email: { type: string, format: email }
                 password: { type: string }
       responses:
-        '200': { description: JWT token response }
+        "200": { description: JWT token response }
+        "401": { description: Invalid credentials }
   /auth/logout:
     post:
       security: [{ bearerAuth: [] }]
+      summary: Logout current user
       responses:
-        '200': { description: Logged out }
+        "200": { description: Logged out }
   /auth/me:
     get:
       security: [{ bearerAuth: [] }]
+      summary: Current authenticated user
       responses:
-        '200': { description: Current user }
+        "200": { description: Current user }
   /tasks:
     get:
       security: [{ bearerAuth: [] }]
+      summary: List tasks with pagination, filtering, and sorting
       parameters:
-        - in: query
-          name: status
-          schema: { type: string, enum: [todo, in_progress, review, done] }
-        - in: query
-          name: priority
-          schema: { type: string, enum: [low, medium, high, urgent] }
-        - in: query
-          name: search
-          schema: { type: string }
+        - { in: query, name: page, schema: { type: integer } }
+        - { in: query, name: per_page, schema: { type: integer } }
+        - { in: query, name: status, schema: { type: string, enum: [todo, in_progress, review, done] } }
+        - { in: query, name: priority, schema: { type: string, enum: [low, medium, high, urgent] } }
+        - { in: query, name: search, schema: { type: string } }
+        - { in: query, name: sort, schema: { type: string, enum: [created_at, due_date, priority, status, title] } }
+        - { in: query, name: direction, schema: { type: string, enum: [asc, desc] } }
       responses:
-        '200': { description: Paginated tasks }
+        "200": { description: Paginated tasks }
     post:
       security: [{ bearerAuth: [] }]
+      summary: Create task (admin or manager)
       responses:
-        '201': { description: Created task }
+        "201": { description: Created task }
+        "403": { description: Forbidden }
+  /tasks/bulk-status:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Queue bulk status update (admin or manager)
+      responses:
+        "202": { description: Bulk status update queued }
+  /tasks/export:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Queue CSV task export (admin or manager)
+      responses:
+        "202": { description: Task export queued }
   /tasks/{id}:
     get:
       security: [{ bearerAuth: [] }]
-      parameters: [{ in: path, name: id, required: true, schema: { type: integer } }]
+      summary: Task detail
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
       responses:
-        '200': { description: Task detail }
+        "200": { description: Task detail }
+        "403": { description: Forbidden }
     put:
       security: [{ bearerAuth: [] }]
-      parameters: [{ in: path, name: id, required: true, schema: { type: integer } }]
+      summary: Update task
+      description: Admin and manager can update full task fields. Assigned members can update status and priority.
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
       responses:
-        '200': { description: Updated task }
+        "200": { description: Updated task }
+        "403": { description: Forbidden }
+    patch:
+      security: [{ bearerAuth: [] }]
+      summary: Partially update task
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      responses:
+        "200": { description: Updated task }
     delete:
       security: [{ bearerAuth: [] }]
-      parameters: [{ in: path, name: id, required: true, schema: { type: integer } }]
+      summary: Delete task (admin or manager)
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
       responses:
-        '200': { description: Deleted task }
+        "200": { description: Deleted task }
   /tasks/{id}/attachments:
     post:
       security: [{ bearerAuth: [] }]
-      parameters: [{ in: path, name: id, required: true, schema: { type: integer } }]
+      summary: Upload task attachment
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
       requestBody:
+        required: true
         content:
           multipart/form-data:
             schema:
               type: object
+              required: [file]
               properties:
                 file: { type: string, format: binary }
       responses:
-        '201': { description: Uploaded attachment }
+        "201": { description: Uploaded attachment }
+  /tasks/{id}/comments:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Add task comment
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      responses:
+        "201": { description: Created comment }
   /attachments/{id}/download:
     get:
       security: [{ bearerAuth: [] }]
-      parameters: [{ in: path, name: id, required: true, schema: { type: integer } }]
+      summary: Download attachment
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
       responses:
-        '200': { description: File download }
+        "200": { description: File download }
   /attachments/{id}:
     delete:
       security: [{ bearerAuth: [] }]
-      parameters: [{ in: path, name: id, required: true, schema: { type: integer } }]
+      summary: Delete attachment (admin or manager)
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
       responses:
-        '200': { description: Deleted attachment }
+        "200": { description: Deleted attachment }
+  /realtime/tasks:
+    get:
+      summary: Server-Sent Events stream for task updates
+      parameters:
+        - { in: query, name: token, required: true, schema: { type: string } }
+      responses:
+        "200": { description: SSE stream }
+  /users:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: List users (admin only)
+      responses:
+        "200": { description: Users list }
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Create user (admin only)
+      responses:
+        "201": { description: User created }
+  /users/{id}:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: User detail (admin only)
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      responses:
+        "200": { description: User detail }
+    put:
+      security: [{ bearerAuth: [] }]
+      summary: Update user (admin only)
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      responses:
+        "200": { description: User updated }
+    delete:
+      security: [{ bearerAuth: [] }]
+      summary: Delete user (admin only)
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      responses:
+        "200": { description: User deleted }
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-  /users:
-    get:
-      security: [{ bearerAuth: [] }]
-      summary: List users (Admin only)
-      responses:
-        '200':
-          description: Users list
-
-    post:
-      security: [{ bearerAuth: [] }]
-      summary: Create user (Admin only)
-      responses:
-        '201':
-          description: User created
-
-  /users/{id}:
-    get:
-      security: [{ bearerAuth: [] }]
-      summary: Get user detail
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-
-      responses:
-        '200':
-          description: User detail
-
-    put:
-      security: [{ bearerAuth: [] }]
-      summary: Update user
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-
-      responses:
-        '200':
-          description: User updated
-
-    delete:
-      security: [{ bearerAuth: [] }]
-      summary: Delete user
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-
-      responses:
-        '200':
-          description: User deleted

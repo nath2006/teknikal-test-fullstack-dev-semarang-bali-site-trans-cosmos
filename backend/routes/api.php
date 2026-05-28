@@ -17,11 +17,15 @@ Route::prefix('auth')->group(function () {
     });
 });
 
+Route::get('realtime/tasks', RealtimeController::class);
+
 Route::middleware('auth:api')->group(function () {
     Route::get('tasks', [TaskController::class, 'index']);
     Route::get('tasks/{task}', [TaskController::class, 'show']);
 
     Route::post('tasks', [TaskController::class, 'store']);
+    Route::post('tasks/bulk-status', [TaskController::class, 'bulkStatus']);
+    Route::post('tasks/export', [TaskController::class, 'export']);
 
     Route::put('tasks/{task}', [TaskController::class, 'update']);
     Route::patch('tasks/{task}', [TaskController::class, 'update']);
@@ -34,7 +38,6 @@ Route::middleware('auth:api')->group(function () {
     Route::get('attachments/{attachment}/download', [AttachmentController::class, 'download']);
     Route::delete('attachments/{attachment}', [AttachmentController::class, 'destroy']);
 
-    Route::get('realtime/tasks', RealtimeController::class);
 });
 
 Route::middleware(['auth:api', 'role:admin'])->group(function () {

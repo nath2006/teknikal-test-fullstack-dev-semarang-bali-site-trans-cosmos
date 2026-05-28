@@ -46,6 +46,8 @@ class AttachmentController extends Controller
 
         ProcessTaskAttachment::dispatch($attachment);
 
+        $task->touch();
+
         return response()->json($attachment, 201);
     }
 
@@ -69,6 +71,8 @@ class AttachmentController extends Controller
         }
 
         Storage::delete([$attachment->file_path, $attachment->thumbnail_path]);
+
+        $attachment->task->touch();
 
         $attachment->delete();
 

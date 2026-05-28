@@ -6,11 +6,11 @@ Laravel is used because the assessment emphasizes PHP backend quality. The API u
 
 ## Frontend
 
-Next.js with TypeScript and Tailwind CSS provides a clean, maintainable UI. API access is centralized in `src/lib/api.ts`. Components are small and reusable: button, task card, and dropzone.
+Next.js with TypeScript and Tailwind CSS provides a clean, maintainable UI. API access is centralized in `frontend/lib/api.ts`. Components are small and reusable: button, task card, and dropzone.
 
 ## Realtime
 
-Server-Sent Events are implemented as a simple realtime channel for task updates. In production, replace this with Laravel Reverb/Pusher or a dedicated WebSocket service.
+Server-Sent Events are implemented as a simple realtime channel for task updates. The frontend passes the JWT as a query token because the native `EventSource` API cannot set custom authorization headers. In production, replace this with Laravel Reverb/Pusher or a dedicated WebSocket service.
 
 ## Security
 
@@ -22,4 +22,4 @@ Server-Sent Events are implemented as a simple realtime channel for task updates
 
 ## Background Jobs
 
-Jobs cover assignment notification simulation and file processing. Additional jobs can be added for bulk task updates and CSV/PDF exports.
+Jobs cover assignment notification simulation, file processing, bulk status updates, and CSV task exports.

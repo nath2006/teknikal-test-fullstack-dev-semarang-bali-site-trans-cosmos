@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import type { User } from "@/types";
 
@@ -8,7 +8,7 @@ export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  async function fetchMe() {
+  const fetchMe = useCallback(async () => {
     try {
       const response = await api.get<User>("/auth/me");
       setUser(response.data);
@@ -18,11 +18,11 @@ export function useAuth() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
-    fetchMe();
-  }, []);
+    void Promise.resolve().then(fetchMe);
+  }, [fetchMe]);
 
   const role = user?.role;
 

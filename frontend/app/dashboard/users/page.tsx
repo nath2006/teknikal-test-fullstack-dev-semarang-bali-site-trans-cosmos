@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 
@@ -24,10 +24,10 @@ export default function UsersPage() {
     role: "member" as Role,
   });
 
-  async function fetchUsers() {
+  const fetchUsers = useCallback(async () => {
     const response = await api.get<PaginatedResponse<User>>("/users");
     setUsers(response.data.data);
-  }
+  }, []);
 
   async function submitUser(e: React.FormEvent) {
     e.preventDefault();
@@ -49,7 +49,7 @@ export default function UsersPage() {
       }
 
       resetForm();
-      fetchUsers();
+      await fetchUsers();
     } catch {
       Swal.fire("Error", "Failed to save user", "error");
     }
@@ -70,7 +70,7 @@ export default function UsersPage() {
     try {
       await api.delete(`/users/${id}`);
       Swal.fire("Deleted", "User deleted successfully", "success");
-      fetchUsers();
+      await fetchUsers();
     } catch {
       Swal.fire("Error", "Failed to delete user", "error");
     }
@@ -97,8 +97,10 @@ export default function UsersPage() {
   }
 
   useEffect(() => {
-    if (canManageUsers) fetchUsers();
-  }, [canManageUsers]);
+    if (!canManageUsers) return;
+
+    void Promise.resolve().then(fetchUsers);
+  }, [canManageUsers, fetchUsers]);
 
   if (authLoading) return <div>Loading...</div>;
 

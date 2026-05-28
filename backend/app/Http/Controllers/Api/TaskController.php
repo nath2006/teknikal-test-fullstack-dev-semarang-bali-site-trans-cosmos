@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\BulkUpdateTaskStatus;
+use App\Jobs\ExportTasksReport;
 use App\Jobs\SendTaskAssignedNotification;
 use App\Models\Task;
 use Illuminate\Http\JsonResponse;
@@ -75,7 +77,7 @@ class TaskController extends Controller
                 'assignee:id,name,email,role',
                 'creator:id,name,email,role',
                 'attachments',
-                'comments.user:id,name,email,role',
+                'comments' => fn ($query) => $query->with('user:id,name,email,role')->latest(),
             ])
         );
     }
@@ -117,6 +119,42 @@ class TaskController extends Controller
         return response()->json([
             'message' => 'Task deleted',
         ]);
+    }
+
+    public function bulkStatus(Request $request): JsonResponse
+    {
+        $this->abortUnlessAdminOrManager();
+
+        $data = $request->validate([
+            'task_ids' => ['required', 'array', 'min:1'],
+            'task_ids.*' => ['integer', 'exists:tasks,id'],
+            'status' => ['required', 'in:todo,in_progress,review,done'],
+        ]);
+
+        BulkUpdateTaskStatus::dispatch($data['task_ids'], $data['status'], auth('api')->id());
+
+        return response()->json([
+            'message' => 'Bulk status update queued',
+        ], 202);
+    }
+
+    public function export(Request $request): JsonResponse
+    {
+        $this->abortUnlessAdminOrManager();
+
+        $filters = $request->validate([
+            'status' => ['nullable', 'in:todo,in_progress,review,done'],
+            'priority' => ['nullable', 'in:low,medium,high,urgent'],
+        ]);
+
+        $path = 'private/exports/tasks-' . auth('api')->id() . '-' . now()->format('YmdHis') . '.csv';
+
+        ExportTasksReport::dispatch($path, array_filter($filters));
+
+        return response()->json([
+            'message' => 'Task export queued',
+            'path' => $path,
+        ], 202);
     }
 
     private function validated(Request $request, bool $partial = false): array

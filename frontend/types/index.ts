@@ -14,8 +14,11 @@ export type Attachment = {
   task_id: number;
   file_name: string;
   file_path: string;
+  thumbnail_path?: string | null;
   file_size: number;
   mime_type: string;
+  version?: number;
+  scan_status?: "pending" | "clean" | "infected";
   uploaded_at?: string;
 };
 

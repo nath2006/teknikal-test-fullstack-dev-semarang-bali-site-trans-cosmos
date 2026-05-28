@@ -23,6 +23,8 @@ class CommentController extends Controller
             'created_at' => now(),
         ]);
 
+        $task->touch();
+
         return response()->json(
             $comment->load('user:id,name,email,role'),
             201

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, Clock3, ListTodo, Users } from "lucide-react";
 
@@ -9,17 +9,22 @@ import { Button } from "@/components/Button";
 import { TaskCard } from "@/components/TaskCard";
 import { Topbar } from "@/components/layout/Topbar";
 import { useAuth } from "@/hooks/useAuth";
+import { useTaskRealtime } from "@/hooks/useTaskRealtime";
 
 import type { PaginatedResponse, Task, User } from "@/types";
 
 export default function DashboardPage() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, loading: authLoading } = useAuth();
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
-  async function fetchDashboard() {
+  const fetchDashboard = useCallback(async (silent = false) => {
+    if (authLoading) return;
+
+    if (!silent) setLoading(true);
+
     try {
       const taskResponse = await api.get<PaginatedResponse<Task>>("/tasks", {
         params: { per_page: 100 },
@@ -35,13 +40,21 @@ export default function DashboardPage() {
         setUsers(userResponse.data.data);
       }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
-  }
+  }, [authLoading, isAdmin]);
+
+  const handleRealtimeTaskEvent = useCallback(() => {
+    void fetchDashboard(true);
+  }, [fetchDashboard]);
+
+  useTaskRealtime(handleRealtimeTaskEvent);
 
   useEffect(() => {
-    fetchDashboard();
-  }, [isAdmin]);
+    if (authLoading) return;
+
+    void Promise.resolve().then(() => fetchDashboard());
+  }, [authLoading, fetchDashboard]);
 
   const stats = useMemo(() => {
     return {
